@@ -8,3 +8,8 @@
         name: nginx
         state: present
         update_cache: yes
+
+    - name: Copy HTML file to Nginx web directory
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
