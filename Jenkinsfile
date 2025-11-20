@@ -17,7 +17,7 @@ pipeline {
         // load SSH key from Jenkins credentials and write to file
         withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key',
                                           keyFileVariable: 'SSH_KEY',
-                                          usernameVariable: 'UBUNTU')]) {
+                                          usernameVariable: 'ubuntu')]) {
           sh '''
             echo "Using SSH key at $SSH_KEY"
             chmod 600 $SSH_KEY
@@ -32,7 +32,7 @@ pipeline {
       steps {
         withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key',
                                           keyFileVariable: 'SSH_KEY',
-                                          usernameVariable: 'UBUNTU')]) {
+                                          usernameVariable: 'ubuntu')]) {
           // Ensure ANSIBLE_HOST_KEY_CHECKING=FALSE or configure known_hosts properly
           sh '''
             export ANSIBLE_HOST_KEY_CHECKING=False
