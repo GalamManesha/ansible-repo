@@ -6,22 +6,26 @@ pipeline {
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
       }
     }
 
-    stage('Prepare') {
+    stage('Prepare SSH Key') {
       steps {
-        // load SSH key from Jenkins credentials and write to file
-        withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key',
+        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2',
                                           keyFileVariable: 'SSH_KEY',
-                                          usernameVariable: 'ubuntu')]) {
+                                          usernameVariable: 'SSH_USER')]) {
           sh '''
-            echo "Using SSH key at $SSH_KEY"
-            chmod 600 $SSH_KEY
-            # Optional: show ansible version
+            echo "Using SSH key: $SSH_KEY"
+            echo "SSH Username: $SSH_USER"
+
+            # make key secure
+            chmod 600 "$SSH_KEY"
+
+            # Optional ansible check
             ansible --version || true
           '''
         }
@@ -30,15 +34,18 @@ pipeline {
 
     stage('Run Ansible Playbook') {
       steps {
-        withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key',
+        withCredentials([sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2',
                                           keyFileVariable: 'SSH_KEY',
-                                          usernameVariable: 'ubuntu')]) {
-          // Ensure ANSIBLE_HOST_KEY_CHECKING=FALSE or configure known_hosts properly
+                                          usernameVariable: 'SSH_USER')]) {
           sh '''
             export ANSIBLE_HOST_KEY_CHECKING=False
             export ANSIBLE_PRIVATE_KEY_FILE="$SSH_KEY"
-            # If your ansible.cfg uses relative inventory path, run from repo root
-            ansible-playbook ${ANSIBLE_PLAYBOOK} -i inventory/hosts -u $SSH_USER --private-key="$SSH_KEY" -vv
+
+            ansible-playbook "$ANSIBLE_PLAYBOOK" \
+              -i inventory/hosts \
+              -u "$SSH_USER" \
+              --private-key="$SSH_KEY" \
+              -vv
           '''
         }
       }
@@ -47,10 +54,10 @@ pipeline {
 
   post {
     success {
-      echo 'Ansible run completed successfully.'
+      echo 'Ansible playbook executed successfully!'
     }
     failure {
-      echo 'Ansible run failed. Check logs.'
+      echo 'Ansible run failed — check logs.'
     }
   }
 }
