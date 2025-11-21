@@ -6,10 +6,6 @@
     - name: Install packages using loop
       apt:
         name: "{{ item }}"
-        state: absent
+        state: present
       loop:
         - git
-        - wget
-        - tree
-        - curl
-        - maven
