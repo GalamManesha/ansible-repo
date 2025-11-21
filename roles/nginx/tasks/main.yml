@@ -1,0 +1,21 @@
+---
+- name: Install nginx package (Debian)
+  apt:
+    name: "{{ nginx_package }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure nginx running
+  service:
+    name: "{{ nginx_service }}"
+    state: started
+    enabled: yes
+
+- name: Deploy index.html from template
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    owner: www-data
+    mode: '0644'
+  notify: Reload nginx
