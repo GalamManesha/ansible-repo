@@ -1,5 +1,5 @@
 - name: Configure web servers
-  hosts: role_web          # లేదా hosts: all (dev/test)
+  hosts: all         # లేదా hosts: all (dev/test)
   become: true
 
   roles:
