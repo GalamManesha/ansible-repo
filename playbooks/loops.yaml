@@ -12,4 +12,4 @@
         - wget
         - tree
         - curl
-        - apache
+        - apache2
