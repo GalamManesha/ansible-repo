@@ -13,3 +13,11 @@
       copy:
         src: index.html
         dest: /var/www/html/index.html
+---
+- name: Install nginx and configure
+  hosts: all
+  become: true
+
+  roles:
+    - nginx
+
