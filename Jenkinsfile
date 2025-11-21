@@ -30,7 +30,8 @@ pipeline {
       steps {
         withCredentials([
           [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-cred', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'],
-          sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')
+          sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER'),
+          file(credentialsId: 'ansible-vault-file', variable: 'VAULT_FILE')    // vault file added here
         ]) {
           sh '''
             chmod 600 "$SSH_KEY" || true
@@ -43,11 +44,12 @@ pipeline {
       }
     }
 
-    stage('Run Ansible Playbook (Dynamic Inventory)') {
+    stage('Run Ansible Playbook (Dynamic Inventory + Vault)') {
       steps {
         withCredentials([
           [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-cred', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'],
-          sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')
+          sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER'),
+          file(credentialsId: 'ansible-vault-file', variable: 'VAULT_FILE')
         ]) {
           sh '''
             export PATH="$HOME/.local/bin:$PATH"
@@ -56,26 +58,12 @@ pipeline {
             chmod 600 "$SSH_KEY" || true
 
             ansible-playbook -i "${ANSIBLE_INVENTORY}" "${ANSIBLE_PLAYBOOK}" \
-              -u "$SSH_USER" --private-key="$SSH_KEY" -vv
+              -u "$SSH_USER" --private-key="$SSH_KEY" --vault-password-file "$VAULT_FILE" -vv
           '''
         }
       }
     }
-  }
-  stage('Run Playbook') {
-  steps {
-    withCredentials([
-      file(credentialsId: 'ansible-vault-file', variable: 'VAULT_FILE'),
-      sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')
-    ]) {
-      sh '''
-        ansible-playbook -i inventory/aws_ec2.yml playbooks/install-nginx.yml \
-        -u "$SSH_USER" --private-key="$SSH_KEY" --vault-password-file "$VAULT_FILE" -vv
-      '''
-    }
-  }
-}
-
+  }  // END stages
 
   post {
     success {
