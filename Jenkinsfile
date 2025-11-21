@@ -62,6 +62,20 @@ pipeline {
       }
     }
   }
+  stage('Run Playbook') {
+  steps {
+    withCredentials([
+      file(credentialsId: 'ansible-vault-file', variable: 'VAULT_FILE'),
+      sshUserPrivateKey(credentialsId: 'jenkins-ssh-ec2', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')
+    ]) {
+      sh '''
+        ansible-playbook -i inventory/aws_ec2.yml playbooks/install-nginx.yml \
+        -u "$SSH_USER" --private-key="$SSH_KEY" --vault-password-file "$VAULT_FILE" -vv
+      '''
+    }
+  }
+}
+
 
   post {
     success {
