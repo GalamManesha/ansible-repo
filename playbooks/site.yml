@@ -1,0 +1,10 @@
+- name: Configure web servers
+  hosts: role_web          # లేదా hosts: all (dev/test)
+  become: true
+
+  roles:
+    - role: nginx
+      # role variables override చేయాలంటే:
+      # vars:
+      #   nginx_package: "nginx"
+      #   index_content: "Hello from Maneesha"
