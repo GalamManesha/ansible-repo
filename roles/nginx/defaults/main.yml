@@ -1,0 +1,3 @@
+nginx_package: nginx
+nginx_service: nginx
+index_content: "<h1>Hello from Roles - {{ ansible_hostname }}</h1>"
