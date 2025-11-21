@@ -19,3 +19,8 @@
     owner: www-data
     mode: '0644'
   notify: Reload nginx
+---
+- name: create config file
+  template:
+    src: db.conf.j2
+    dest: /etc/nginx/db.conf
